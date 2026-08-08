@@ -1,9 +1,11 @@
+import { assetUrl } from '@/lib/assetUrl'
+
 export async function playScreamReleaseSound() {
-  const paths = ['/assets/sounds/scream/release.mp3', '/assets/sounds/scream/whoosh.mp3']
+  const paths = ['assets/sounds/scream/release.mp3', 'assets/sounds/scream/whoosh.mp3']
 
   for (const src of paths) {
     const played = await new Promise<boolean>((resolve) => {
-      const audio = new Audio(src)
+      const audio = new Audio(assetUrl(src))
       audio.volume = 0.7
       const done = (ok: boolean) => resolve(ok)
       audio.oncanplaythrough = () => audio.play().then(() => done(true)).catch(() => done(false))
