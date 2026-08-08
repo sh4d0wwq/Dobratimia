@@ -19,22 +19,27 @@ export function Sidebar() {
               className="mb-2 rounded-lg border-l-2 border-transparent bg-white/5 p-3 text-sm transition hover:border-primary hover:bg-white/10"
             >
               <p className="font-semibold">{item.title}</p>
-              <p className="mt-1 text-white/70">{item.content}</p>
-              {item.phone && (
-                <a
-                  href={item.href}
-                  className="mt-2 block font-bold text-primary"
-                >
+              {item.content && <p className="mt-1 text-white/70">{item.content}</p>}
+              {item.phone && item.href && (
+                <a href={item.href} className="mt-2 block font-bold text-primary">
                   {item.phone}
                 </a>
               )}
+              {item.phones?.map((p) => (
+                <div key={p.href} className="mt-2">
+                  {p.label && <p className="text-xs text-white/80">{p.label}</p>}
+                  <a href={p.href} className="block font-bold text-primary">
+                    {p.phone}
+                  </a>
+                </div>
+              ))}
             </div>
           ))}
         </section>
       ))}
 
       <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100">
-        ⚠️ Платформа не заменяет профессиональную помощь. При кризисе звоните на линию доверия.
+        ⚠️ Платформа не заменяет профессиональную помощь. При кризисе звоните 133.
       </p>
     </aside>
   )

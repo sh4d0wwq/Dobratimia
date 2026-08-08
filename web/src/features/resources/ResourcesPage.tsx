@@ -12,7 +12,11 @@ export function ResourcesPage() {
       />
 
       <WarningBox>
-        При угрозе жизни или острой кризисной ситуации звоните 112 или на линию доверия.
+        При угрозе жизни или острой кризисной ситуации звоните{' '}
+        <a href="tel:133" className="font-bold underline">
+          133
+        </a>{' '}
+        или на линию доверия.
       </WarningBox>
 
       <div className="space-y-6">
@@ -25,7 +29,7 @@ export function ResourcesPage() {
               {block.items.map((item) => (
                 <Card key={item.title}>
                   <p className="font-semibold text-primary-dark">{item.title}</p>
-                  <p className="mt-2 text-sm text-muted">{item.content}</p>
+                  {item.content && <p className="mt-2 text-sm text-muted">{item.content}</p>}
                   {item.phone && item.href && (
                     <a
                       href={item.href}
@@ -34,6 +38,14 @@ export function ResourcesPage() {
                       {item.phone}
                     </a>
                   )}
+                  {item.phones?.map((p) => (
+                    <div key={p.href} className="mt-3">
+                      {p.label && <p className="text-xs font-medium text-muted">{p.label}</p>}
+                      <a href={p.href} className="text-lg font-bold text-primary hover:underline">
+                        {p.phone}
+                      </a>
+                    </div>
+                  ))}
                 </Card>
               ))}
             </div>
