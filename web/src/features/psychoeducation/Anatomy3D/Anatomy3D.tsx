@@ -40,7 +40,7 @@ export default function Anatomy3D({
   }
 
   return (
-    <div className="relative h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-300">
+    <div className="relative h-[min(420px,60vh)] min-h-[280px] w-full touch-none overflow-hidden rounded-2xl border border-slate-200 bg-slate-300">
       {!sceneReady && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-200 text-muted">
           Загрузка 3D…
@@ -52,10 +52,15 @@ export default function Anatomy3D({
         }`}
       >
         <Canvas
-          style={{ width: '100%', height: '100%', display: 'block' }}
+          style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
           camera={{ position: [0, 0.9, 2.6], fov: 45, near: 0.01, far: 100 }}
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+          dpr={[1, 2]}
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: 'default',
+            preserveDrawingBuffer: true,
+          }}
           onCreated={({ gl }) => {
             gl.setClearColor('#cbd5e1')
           }}

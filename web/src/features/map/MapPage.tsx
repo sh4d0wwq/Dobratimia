@@ -11,9 +11,10 @@ export function MapPage() {
         <iframe
           title="Карта добрых мест"
           src="https://www.google.com/maps/d/embed?mid=1G8w_bj137owwx2AcyYF9hm-UdH5RJAA&ehbc=2E312F"
-          className="aspect-video w-full min-h-[400px] border-0"
+          className="aspect-[4/3] w-full min-h-[360px] border-0 sm:min-h-[480px]"
           loading="lazy"
           allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
         />
       </div>
     </div>
