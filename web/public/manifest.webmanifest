@@ -2,20 +2,21 @@
   "name": "Добратимия",
   "short_name": "Добратимия",
   "description": "Самопомощь и скрининг для студентов медвузов",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#10b981",
   "lang": "ru",
   "icons": [
     {
-      "src": "/icons/logo.png",
+      "src": "./icons/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "./icons/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
