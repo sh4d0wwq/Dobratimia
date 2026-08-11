@@ -26,8 +26,7 @@ npm.cmd run preview
 
 Сайт: https://sh4d0wwq.github.io/Dobratimia/
 
-В настройках репозитория: **Settings → Pages → Build and deployment → Source → GitHub Actions**  
-(не «Deploy from a branch» — иначе публикуется сырой `main` и приложение не открывается).
+Деплой кладёт сборку в ветку `gh-pages`. В **Settings → Pages** источник должен быть: ветка **gh-pages** / корень (не `main`).
 
 ## Структура
 
