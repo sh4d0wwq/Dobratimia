@@ -1,16 +1,18 @@
 import { assetUrl } from '@/lib/assetUrl'
+import { SoundToggle } from './SoundToggle'
 
 export function Header() {
   return (
-    <header className="relative overflow-hidden bg-gradient-to-br from-primary via-emerald-500 to-secondary px-6 py-8 text-center text-white shadow-md lg:py-6">
+    <header className="relative bg-gradient-to-br from-primary via-emerald-500 to-secondary px-6 py-8 text-center text-white shadow-md lg:py-6">
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 overflow-hidden opacity-30"
         aria-hidden
         style={{
           backgroundImage:
             'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.35) 0%, transparent 45%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 40%)',
         }}
       />
+      <SoundToggle />
       <div className="relative mx-auto flex max-w-lg flex-col items-center gap-3">
         <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white/95 shadow-lg ring-4 ring-white/20 lg:h-24 lg:w-24">
           <img

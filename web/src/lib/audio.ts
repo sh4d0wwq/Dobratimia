@@ -1,7 +1,7 @@
 import { assetUrl } from './assetUrl'
 
 type Phase = 'inhale' | 'hold' | 'exhale'
-type AmbientKind = 'rain' | 'wind' | 'forest'
+export type AmbientKind = 'rain' | 'wind' | 'forest'
 
 const BREATHING_FILES: Record<Phase, string> = {
   inhale: 'assets/sounds/breathing/inhale.mp3',
@@ -14,6 +14,9 @@ const AMBIENT_FILES: Record<AmbientKind, string> = {
   wind: 'assets/sounds/ambient/wind.mp3',
   forest: 'assets/sounds/ambient/forest.mp3',
 }
+
+/** Трек общей фоновой музыки сайта. */
+const BACKGROUND_TRACK = 'assets/sounds/ambient/forest.mp3'
 
 let audioContext: AudioContext | null = null
 let breathingGain: GainNode | null = null
@@ -234,6 +237,88 @@ function playSyntheticAmbient(kind: AmbientKind): boolean {
   source.start()
   syntheticAmbient = { source, gain }
   return true
+}
+
+/* --- Общая фоновая музыка сайта --- */
+
+let backgroundElement: HTMLAudioElement | null = null
+let backgroundVolume = 0.15
+
+function ensureBackgroundElement(): HTMLAudioElement {
+  if (backgroundElement) return backgroundElement
+
+  const audio = new Audio()
+  audio.preload = 'auto'
+  audio.loop = true
+  audio.volume = backgroundVolume
+  audio.setAttribute('playsinline', 'true')
+  audio.setAttribute('webkit-playsinline', 'true')
+  audio.src = assetUrl(BACKGROUND_TRACK)
+  audio.load()
+  backgroundElement = audio
+  return audio
+}
+
+export function setBackgroundVolume(value: number): void {
+  backgroundVolume = Math.max(0, Math.min(1, value))
+  if (backgroundElement) backgroundElement.volume = backgroundVolume
+}
+
+/** Продолжает воспроизведение с текущей позиции — трек не начинается заново. */
+export async function playBackgroundMusic(startAt?: number): Promise<boolean> {
+  const audio = ensureBackgroundElement()
+  audio.volume = backgroundVolume
+  if (startAt !== undefined && audio.currentTime === 0 && Number.isFinite(startAt)) {
+    try {
+      audio.currentTime = startAt
+    } catch {
+      // Метаданные ещё не загружены — начнём с начала.
+    }
+  }
+  try {
+    await audio.play()
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function pauseBackgroundMusic(): void {
+  backgroundElement?.pause()
+}
+
+export function getBackgroundPosition(): number {
+  return backgroundElement?.currentTime ?? 0
+}
+
+/* --- Сигнал завершения таймера --- */
+
+export async function playTimerChime(): Promise<void> {
+  const ctx = await unlockAudio()
+  if (!ctx) return
+
+  const now = ctx.currentTime
+  const master = ctx.createGain()
+  master.gain.value = 0.5
+  master.connect(ctx.destination)
+
+  // Мягкий двухтональный «колокольчик» вместо резкого будильника.
+  ;[
+    { freq: 880, at: 0 },
+    { freq: 1320, at: 0.18 },
+  ].forEach(({ freq, at }) => {
+    const osc = ctx.createOscillator()
+    const env = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    osc.connect(env)
+    env.connect(master)
+    env.gain.setValueAtTime(0.0001, now + at)
+    env.gain.exponentialRampToValueAtTime(0.8, now + at + 0.02)
+    env.gain.exponentialRampToValueAtTime(0.0001, now + at + 1.1)
+    osc.start(now + at)
+    osc.stop(now + at + 1.2)
+  })
 }
 
 export async function startAmbientSound(kind: AmbientKind): Promise<boolean> {
