@@ -3,19 +3,18 @@ import { useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { useSiteAudio } from '@/context/audio-store'
 import {
   playBreathingPhaseSound,
   preloadMeditationAudio,
   setAmbientVolume,
   setBreathingVolume,
-  startAmbientSound,
-  stopAmbientPlayback,
   unlockAudio,
 } from '@/lib/audio'
 import { MeditationModeToggle } from './MeditationModeToggle'
+import { PomodoroPanel } from './PomodoroPanel'
 
 type Phase = 'inhale' | 'hold' | 'exhale'
-type PomodoroPhase = 'work' | 'break'
 
 const MODES = [
   { label: '4-6', inhale: 4, hold: 0, exhale: 6 },
@@ -28,9 +27,6 @@ const AMBIENT = [
   { id: 'wind' as const, label: 'Ветер', emoji: '💨' },
   { id: 'forest' as const, label: 'Лес', emoji: '🌲' },
 ]
-
-const POMODORO_WORK_SEC = 25 * 60
-const POMODORO_BREAK_SEC = 5 * 60
 
 function VolumeSlider({
   label,
@@ -65,6 +61,13 @@ export function MeditationPage() {
   const pomodoroMode = searchParams.get('pomodoro') === '1'
   const initialMode = Math.min(Math.max(Number(searchParams.get('mode') ?? 0), 0), MODES.length - 1)
 
+  const {
+    meditationAmbient,
+    startMeditationAmbient,
+    stopMeditationAmbient,
+    setMeditationSessionActive,
+  } = useSiteAudio()
+
   const [mode, setMode] = useState(initialMode)
   const [running, setRunning] = useState(false)
   const [phase, setPhase] = useState<Phase>('inhale')
@@ -73,7 +76,6 @@ export function MeditationPage() {
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [signalVolume, setSignalVolume] = useState(70)
   const [ambientVol, setAmbientVol] = useState(45)
-  const [ambientId, setAmbientId] = useState<string | null>(null)
 
   const runningRef = useRef(false)
   const modeRef = useRef(mode)
@@ -82,16 +84,7 @@ export function MeditationPage() {
   const soundEnabledRef = useRef(true)
   const timerRef = useRef<number | null>(null)
 
-  const [pomodoroPhase, setPomodoroPhase] = useState<PomodoroPhase>('work')
-  const [pomodoroSec, setPomodoroSec] = useState(POMODORO_WORK_SEC)
-  const [pomodoroRounds, setPomodoroRounds] = useState(0)
-
   const cfg = MODES[mode]
-
-  const stopAmbient = useCallback(() => {
-    stopAmbientPlayback()
-    setAmbientId(null)
-  }, [])
 
   useEffect(() => {
     void preloadMeditationAudio()
@@ -109,13 +102,19 @@ export function MeditationPage() {
     runningRef.current = running
   }, [running])
 
-  useEffect(() => () => stopAmbient(), [stopAmbient])
+  // Звук медитации специально не выключается при уходе со страницы:
+  // остановить его можно кнопкой звука в шапке или здесь.
+
+  // Пока идёт озвученная практика, общая фоновая музыка уступает ей место.
+  useEffect(() => {
+    setMeditationSessionActive(running && soundEnabled && !pomodoroMode)
+    return () => setMeditationSessionActive(false)
+  }, [running, soundEnabled, pomodoroMode, setMeditationSessionActive])
 
   useEffect(() => {
-    if (pomodoroMode) stopAmbient()
     setRunning(false)
     runningRef.current = false
-  }, [pomodoroMode, stopAmbient])
+  }, [pomodoroMode])
 
   useEffect(() => {
     const m = Math.min(Math.max(Number(searchParams.get('mode') ?? mode), 0), MODES.length - 1)
@@ -189,32 +188,6 @@ export function MeditationPage() {
     return clearBreathingTimer
   }, [running, pomodoroMode, playCue])
 
-  useEffect(() => {
-    if (!pomodoroMode || !running) return
-
-    const id = window.setInterval(() => {
-      setPomodoroSec((s) => {
-        if (s > 1) return s - 1
-        setPomodoroPhase((p) => {
-          if (p === 'work') {
-            setPomodoroRounds((r) => r + 1)
-            return 'break'
-          }
-          return 'work'
-        })
-        return -1
-      })
-    }, 1000)
-
-    return () => window.clearInterval(id)
-  }, [running, pomodoroMode])
-
-  useEffect(() => {
-    if (pomodoroSec === -1) {
-      setPomodoroSec(pomodoroPhase === 'break' ? POMODORO_BREAK_SEC : POMODORO_WORK_SEC)
-    }
-  }, [pomodoroSec, pomodoroPhase])
-
   const applySignalVolume = (value: number) => {
     setSignalVolume(value)
     void unlockAudio().then(() => setBreathingVolume(value / 100))
@@ -228,15 +201,12 @@ export function MeditationPage() {
   const toggleAmbient = async (id: (typeof AMBIENT)[number]['id']) => {
     await unlockAudio()
     await preloadMeditationAudio()
-    if (ambientId === id) {
-      stopAmbient()
+    if (meditationAmbient === id) {
+      stopMeditationAmbient()
       return
     }
-    const ok = await startAmbientSound(id)
-    if (ok) {
-      setAmbientVolume(ambientVol / 100)
-      setAmbientId(id)
-    }
+    const ok = await startMeditationAmbient(id)
+    if (ok) setAmbientVolume(ambientVol / 100)
   }
 
   const startBreathing = async () => {
@@ -255,40 +225,12 @@ export function MeditationPage() {
     setRunning(true)
   }
 
-  const formatTime = (sec: number) => {
-    const m = Math.floor(sec / 60)
-    const s = sec % 60
-    return `${m}:${s.toString().padStart(2, '0')}`
-  }
-
   if (pomodoroMode) {
     return (
       <div>
         <PageHeader title="🧘 Медитации" subtitle="25 минут работы, 5 минут отдыха" />
         <MeditationModeToggle />
-        <Card className="text-center">
-          <p className="text-lg font-semibold text-primary">
-            {pomodoroPhase === 'work' ? 'Работа' : 'Перерыв'}
-          </p>
-          <p className="mt-4 text-6xl font-bold tabular-nums">{formatTime(pomodoroSec)}</p>
-          <p className="mt-2 text-sm text-muted">Завершено циклов: {pomodoroRounds}</p>
-          <div className="mt-6 flex justify-center gap-2">
-            <Button onClick={() => void unlockAudio().then(() => setRunning((r) => !r))}>
-              {running ? '⏸ Пауза' : '▶️ Начать'}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setRunning(false)
-                setPomodoroPhase('work')
-                setPomodoroSec(POMODORO_WORK_SEC)
-                setPomodoroRounds(0)
-              }}
-            >
-              🔄 Сброс
-            </Button>
-          </div>
-        </Card>
+        <PomodoroPanel />
       </div>
     )
   }
@@ -375,7 +317,10 @@ export function MeditationPage() {
 
       <Card>
         <h3 className="mb-2 font-semibold">🎧 Фоновые звуки</h3>
-        <p className="mb-4 text-sm text-muted">Выберите звук природы для расслабления во время практики.</p>
+        <p className="mb-4 text-sm text-muted">
+          Выберите звук природы для расслабления. Он продолжит играть при переходе в другие разделы
+          и на это время приглушит общую фоновую музыку сайта.
+        </p>
         <div className="mb-6 max-w-sm">
           <VolumeSlider label="Громкость фона" value={ambientVol} onChange={applyAmbientVolume} />
         </div>
@@ -386,15 +331,15 @@ export function MeditationPage() {
               type="button"
               onClick={() => void toggleAmbient(a.id)}
               className={`rounded-xl border px-4 py-3 text-center hover:border-primary ${
-                ambientId === a.id ? 'border-primary bg-primary/5' : ''
+                meditationAmbient === a.id ? 'border-primary bg-primary/5' : ''
               }`}
             >
               <span className="text-2xl">{a.emoji}</span>
               <span className="mt-1 block text-sm">{a.label}</span>
             </button>
           ))}
-          {ambientId && (
-            <Button variant="secondary" onClick={stopAmbient}>
+          {meditationAmbient && (
+            <Button variant="secondary" onClick={stopMeditationAmbient}>
               ⏹ Стоп
             </Button>
           )}
