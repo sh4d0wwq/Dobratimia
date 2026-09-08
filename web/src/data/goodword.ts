@@ -1,4 +1,17 @@
-export type GoodwordPhrase = { text: string; emoji: string }
+export type GoodwordPhrase = {
+  text: string
+  emoji: string
+  /**
+   * Заполняется, если слово подготовил специалист. Это общее поддерживающее
+   * высказывание, а не индивидуальная консультация или назначение.
+   */
+  expert?: {
+    /** id из web/src/data/therapists.ts */
+    therapistId: string
+    /** Дополнительная фраза, которая показывается мелким шрифтом. */
+    note: string
+  }
+}
 
 export const GOODWORD_PHRASES: Record<'sweet' | 'spicy', GoodwordPhrase[]> = {
   sweet: [
@@ -12,6 +25,30 @@ export const GOODWORD_PHRASES: Record<'sweet' | 'spicy', GoodwordPhrase[]> = {
     { text: 'Ты — тот человек, о котором кто-то думает и невольно улыбается 💌', emoji: '💌' },
     { text: 'Даже маленький шаг вперёд — это уже движение 🚶', emoji: '🌟' },
     { text: 'Ты заслуживаешь тепла, отдыха и вкусного чая ☕', emoji: '☕' },
+    {
+      text: 'Вы не обязаны быть продуктивными каждую минуту, чтобы быть ценными',
+      emoji: '🌿',
+      expert: {
+        therapistId: 'anna-ivanova',
+        note: 'Сегодня можно выбрать темп помягче и не требовать от себя невозможного.',
+      },
+    },
+    {
+      text: 'Усталость — это сигнал, а не приговор вашей силе воли',
+      emoji: '🛋️',
+      expert: {
+        therapistId: 'maria-kotova',
+        note: 'Попробуйте заметить, в какой момент дня вам становится тяжелее всего, — с этого проще начать разговор о себе.',
+      },
+    },
+    {
+      text: 'Тревога перед важным днём говорит о том, что вам не всё равно',
+      emoji: '🫧',
+      expert: {
+        therapistId: 'sergey-petrov',
+        note: 'Медленный выдох длиннее вдоха — простой способ дать телу сигнал, что опасности нет.',
+      },
+    },
   ],
   spicy: [
     { text: 'Ты не лох, ты просто недооценённый гений 🧠', emoji: '🧠' },
