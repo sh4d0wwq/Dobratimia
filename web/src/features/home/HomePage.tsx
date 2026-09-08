@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { WellnessTrendChart } from '@/components/WellnessTrendChart'
 import { RecommendationCards } from '@/components/RecommendationCards'
+import { VisitorCounter } from '@/components/VisitorCounter'
 import { getDassRecommendations } from '@/lib/recommendations'
 import { formatEntryDate, getLatestEntry, loadHistory } from '@/lib/storage/dass-history'
 import { getWeeklyAverage, hasEntryForToday, loadMoodDiary } from '@/lib/storage/mood-diary'
@@ -39,6 +40,7 @@ export function HomePage() {
     <div>
       <header className="mb-8 text-center">
         <h2 className="text-2xl font-bold">Добро пожаловать</h2>
+        <VisitorCounter className="mt-2" />
       </header>
 
       {!hasEntryForToday() && (
