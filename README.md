@@ -28,6 +28,22 @@ npm.cmd run preview
 
 Деплой кладёт сборку в ветку `gh-pages`. В **Settings → Pages** источник должен быть: ветка **gh-pages** / корень (не `main`).
 
+## Что где настраивается
+
+| Что | Файл |
+| --- | --- |
+| Реакции «КРИКа» по уровням громкости | `web/src/features/scream/loudnessReactions.ts` |
+| Шкала условных дБ | `web/src/features/scream/useLoudnessMeter.ts` |
+| Контакты и приёмник формы обратной связи | `web/src/data/contacts.ts` |
+| Профили специалистов | `web/src/data/therapists.ts` |
+| Добрые слова, в том числе от психотерапевтов | `web/src/data/goodword.ts` |
+| Счётчик посещений (namespace, провайдеры) | `web/src/lib/visitorCounter.ts` |
+| Приёмник аналитики по карточкам | `web/src/lib/therapistAnalytics.ts` |
+| Трек фоновой музыки | `web/src/lib/audio.ts` |
+
+Служебные страницы вне навигации: `/stats` — посещения по дням и метрики карточек
+специалистов, `/privacy` — политика конфиденциальности.
+
 ## Структура
 
 ```text
