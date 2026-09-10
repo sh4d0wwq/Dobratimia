@@ -21,11 +21,16 @@ function getAudioContextCtor(): AudioCtxCtor | null {
 /**
  * Условный уровень 0..130 из RMS входного сигнала. Это не dB SPL:
  * браузер не даёт калиброванного значения, поэтому шкала ориентировочная.
+ *
+ * Подгонка под типичный ноутбук/телефон (AGC выключен):
+ * обычная речь ≈ −35 dBFS → ~30 («спокойный голос»);
+ * громкий крик ≈ −10 dBFS → ~95;
+ * клиппинг микрофона → 120+.
  */
 export function levelFromRms(rms: number): number {
   if (!Number.isFinite(rms) || rms <= 0) return 0
   const dbfs = 20 * Math.log10(rms)
-  return Math.max(0, Math.min(MAX_LEVEL, (dbfs + 70) * 1.85))
+  return Math.max(0, Math.min(MAX_LEVEL, (dbfs + 48) * 2.5))
 }
 
 export function useLoudnessMeter() {
